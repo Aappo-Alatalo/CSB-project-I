@@ -19,13 +19,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# FLAW 4 (A05 Security Misconfiguration): the app ships in an insecure configuration. The secret
+# key is hard-coded in version control, debug mode is left on, and ALLOWED_HOSTS accepts any host.
+# With DEBUG on, any unhandled error returns Django's debug page, which leaks the stack trace,
+# local variables, settings and source code to whoever triggered the error.
 SECRET_KEY = 'django-insecure-h(e*%+-9#1u18615kb4k08lhw%27v=p+95n&iozdkbq*^y@ceg'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+# FIX (A05): read the secret key from the environment, keep debug off outside local development,
+# and list only the hosts the site is actually served on. Comment out the three lines above and
+# uncomment the block below.
+# import os
+# SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+# DEBUG = os.environ.get('DJANGO_DEBUG') == '1'
+# ALLOWED_HOSTS = ['saunavaraus.example.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
