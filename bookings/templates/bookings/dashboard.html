@@ -1,0 +1,22 @@
+{% extends 'bookings/base.html' %}
+
+{% block title %}My shifts{% endblock %}
+
+{% block content %}
+    <h1>My sauna shifts</h1>
+    {% if reservations %}
+        <table>
+            <tr><th>Date</th><th>Shift</th><th>Note</th></tr>
+            {% for r in reservations %}
+                <tr>
+                    <td>{{ r.date }}</td>
+                    <td>{{ r.get_slot_display }}</td>
+                    <td>{{ r.note }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>You have no reservations yet.</p>
+    {% endif %}
+    <p><a href="{% url 'book' %}">Book a new shift</a></p>
+{% endblock %}

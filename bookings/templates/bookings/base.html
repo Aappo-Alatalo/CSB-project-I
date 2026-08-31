@@ -7,17 +7,27 @@
     <style>
         body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #222; }
         header { border-bottom: 1px solid #ddd; padding-bottom: .5rem; margin-bottom: 1.5rem; }
-        header a { margin-right: 1rem; }
+        nav a { margin-right: 1rem; }
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
         .note { color: #666; font-size: .9rem; }
+        .error { color: #b00; }
+        form p { margin: .6rem 0; }
     </style>
 </head>
 <body>
     <header>
         <strong>As Oy Saunavaraus</strong>
         <nav>
-            <a href="{% url 'home' %}">Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">My shifts</a>
+                <a href="{% url 'book' %}">Book a shift</a>
+                <a href="{% url 'logout' %}">Log out ({{ user.username }})</a>
+            {% else %}
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'login' %}">Log in</a>
+                <a href="{% url 'register' %}">Register</a>
+            {% endif %}
         </nav>
     </header>
     <main>
