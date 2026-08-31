@@ -6,7 +6,7 @@
     <h1>My sauna shifts</h1>
     {% if reservations %}
         <table>
-            <tr><th>Date</th><th>Shift</th><th>Note</th><th></th></tr>
+            <tr><th>Date</th><th>Shift</th><th>Shift note</th><th></th></tr>
             {% for r in reservations %}
                 <tr>
                     <td>{{ r.date }}</td>

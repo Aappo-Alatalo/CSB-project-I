@@ -71,12 +71,13 @@ def book(request):
 
 @login_required
 def reservation_detail(request, pk):
-    # FLAW 1 (A01 Broken Access Control / IDOR): the reservation is fetched by primary key only.
-    # There is no check that it belongs to the logged-in resident, so anyone can read another
-    # resident's booking - including the private note - by changing the id in the URL.
+    # FLAW 1 (A01 Broken Access Control / IDOR): the reservation is fetched by primary key only,
+    # with no check that it belongs to the logged-in resident. By changing the id in the URL a
+    # resident can force-browse to any other resident's booking and see who has the sauna and when.
+    # The same missing check is what lets cancel_reservation() below delete other people's shifts.
     reservation = Reservation.objects.get(pk=pk)
-    # FIX (A01): scope the lookup to the current user so other residents' bookings are not exposed
-    # (a missing object then returns 404 instead of leaking data).
+    # FIX (A01): scope the lookup to the current user so residents can only open their own bookings
+    # (a missing or non-owned reservation then returns 404).
     # reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
     return render(request, 'bookings/reservation_detail.html', {'reservation': reservation})
 
@@ -84,9 +85,10 @@ def reservation_detail(request, pk):
 @login_required
 def cancel_reservation(request, pk):
     # FLAW 1 (A01 Broken Access Control / IDOR): the reservation is fetched by primary key only,
-    # with no ownership check, so a resident can cancel anyone's shift by posting its id.
+    # with no ownership check, so a resident can cancel and delete ANY other resident's shift just
+    # by posting its id - unauthorized modification and destruction of data they do not own.
     reservation = Reservation.objects.get(pk=pk)
-    # FIX (A01): only let a resident cancel their own reservation.
+    # FIX (A01): only let a resident cancel their own reservation (otherwise return 404).
     # reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
     if request.method == 'POST':
         reservation.delete()
@@ -99,21 +101,19 @@ def directory(request):
     q = request.GET.get('q', '')
     residents = []
     if q:
+        # FLAW 3 (A03 Injection): the search term is concatenated straight into the SQL string, so
+        # an attacker can break out of the string literal and run their own SQL. For example
+        # searching  ' UNION SELECT username, password, '' FROM auth_user --  dumps every username
+        # and password hash into the results.
         with connection.cursor() as cursor:
-            # FLAW 3 (A03 Injection): the search term is concatenated straight into the SQL string,
-            # so an attacker can break out of the string literal and run their own SQL. For example
-            # searching  ' UNION SELECT username, password, '' FROM auth_user --  dumps every
-            # username and password hash into the results.
             cursor.execute(
                 "SELECT full_name, apartment, phone FROM bookings_profile "
                 "WHERE full_name LIKE '%" + q + "%'"
             )
-            # FIX (A03): keep the value out of the SQL text by binding it as a parameter, or use the
-            # ORM which parameterizes for you: Profile.objects.filter(full_name__icontains=q).
-            # cursor.execute(
-            #     "SELECT full_name, apartment, phone FROM bookings_profile "
-            #     "WHERE full_name LIKE %s",
-            #     ['%' + q + '%'],
-            # )
             residents = cursor.fetchall()
+        # FIX (A03): let the ORM build a parameterized query so the search term is always treated as
+        # data, never as SQL. values_list keeps the (name, apartment, phone) tuples the template
+        # expects. Comment out the raw query above and uncomment the line below.
+        # residents = Profile.objects.filter(full_name__icontains=q).values_list(
+        #     'full_name', 'apartment', 'phone')
     return render(request, 'bookings/directory.html', {'residents': residents, 'q': q})

@@ -20,6 +20,7 @@ class ReservationForm(forms.ModelForm):
         model = Reservation
         fields = ['date', 'slot', 'note']
         widgets = {'date': forms.DateInput(attrs={'type': 'date'})}
+        help_texts = {'note': 'Optional message shown to other residents, e.g. "please leave the sauna clean".'}
 
     def clean(self):
         cleaned = super().clean()

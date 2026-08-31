@@ -7,7 +7,7 @@
     <p>Date: {{ reservation.date }}</p>
     <p>Shift: {{ reservation.get_slot_display }}</p>
     <p>Reserved by: {{ reservation.user.profile.full_name }} ({{ reservation.user.profile.apartment }})</p>
-    <p>Note: {{ reservation.note }}</p>
+    <p>Shift note (visible to all residents): {{ reservation.note }}</p>
     <form method="post" action="{% url 'cancel_reservation' reservation.pk %}">
         {% csrf_token %}
         <button type="submit">Cancel this reservation</button>
