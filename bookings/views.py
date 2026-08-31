@@ -1,9 +1,9 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RegisterForm, ReservationForm
-from .models import Profile
+from .models import Profile, Reservation
 
 
 def home(request):
@@ -66,3 +66,28 @@ def book(request):
     else:
         form = ReservationForm()
     return render(request, 'bookings/book.html', {'form': form})
+
+
+@login_required
+def reservation_detail(request, pk):
+    # FLAW 1 (A01 Broken Access Control / IDOR): the reservation is fetched by primary key only.
+    # There is no check that it belongs to the logged-in resident, so anyone can read another
+    # resident's booking - including the private note - by changing the id in the URL.
+    reservation = Reservation.objects.get(pk=pk)
+    # FIX (A01): scope the lookup to the current user so other residents' bookings are not exposed
+    # (a missing object then returns 404 instead of leaking data).
+    # reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
+    return render(request, 'bookings/reservation_detail.html', {'reservation': reservation})
+
+
+@login_required
+def cancel_reservation(request, pk):
+    # FLAW 1 (A01 Broken Access Control / IDOR): the reservation is fetched by primary key only,
+    # with no ownership check, so a resident can cancel anyone's shift by posting its id.
+    reservation = Reservation.objects.get(pk=pk)
+    # FIX (A01): only let a resident cancel their own reservation.
+    # reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
+    if request.method == 'POST':
+        reservation.delete()
+        return redirect('dashboard')
+    return render(request, 'bookings/cancel.html', {'reservation': reservation})

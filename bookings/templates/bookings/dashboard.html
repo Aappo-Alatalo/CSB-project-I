@@ -6,12 +6,13 @@
     <h1>My sauna shifts</h1>
     {% if reservations %}
         <table>
-            <tr><th>Date</th><th>Shift</th><th>Note</th></tr>
+            <tr><th>Date</th><th>Shift</th><th>Note</th><th></th></tr>
             {% for r in reservations %}
                 <tr>
                     <td>{{ r.date }}</td>
                     <td>{{ r.get_slot_display }}</td>
                     <td>{{ r.note }}</td>
+                    <td><a href="{% url 'reservation_detail' r.pk %}">Details</a></td>
                 </tr>
             {% endfor %}
         </table>

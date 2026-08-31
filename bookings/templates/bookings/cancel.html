@@ -1,0 +1,13 @@
+{% extends 'bookings/base.html' %}
+
+{% block title %}Cancel reservation{% endblock %}
+
+{% block content %}
+    <h1>Cancel reservation</h1>
+    <p>Cancel the shift on {{ reservation.date }} ({{ reservation.get_slot_display }})?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Yes, cancel it</button>
+    </form>
+    <p><a href="{% url 'dashboard' %}">No, go back</a></p>
+{% endblock %}
