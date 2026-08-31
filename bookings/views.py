@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import connection
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import RegisterForm, ReservationForm
@@ -91,3 +92,28 @@ def cancel_reservation(request, pk):
         reservation.delete()
         return redirect('dashboard')
     return render(request, 'bookings/cancel.html', {'reservation': reservation})
+
+
+@login_required
+def directory(request):
+    q = request.GET.get('q', '')
+    residents = []
+    if q:
+        with connection.cursor() as cursor:
+            # FLAW 3 (A03 Injection): the search term is concatenated straight into the SQL string,
+            # so an attacker can break out of the string literal and run their own SQL. For example
+            # searching  ' UNION SELECT username, password, '' FROM auth_user --  dumps every
+            # username and password hash into the results.
+            cursor.execute(
+                "SELECT full_name, apartment, phone FROM bookings_profile "
+                "WHERE full_name LIKE '%" + q + "%'"
+            )
+            # FIX (A03): keep the value out of the SQL text by binding it as a parameter, or use the
+            # ORM which parameterizes for you: Profile.objects.filter(full_name__icontains=q).
+            # cursor.execute(
+            #     "SELECT full_name, apartment, phone FROM bookings_profile "
+            #     "WHERE full_name LIKE %s",
+            #     ['%' + q + '%'],
+            # )
+            residents = cursor.fetchall()
+    return render(request, 'bookings/directory.html', {'residents': residents, 'q': q})

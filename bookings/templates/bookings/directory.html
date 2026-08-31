@@ -1,0 +1,21 @@
+{% extends 'bookings/base.html' %}
+
+{% block title %}Resident directory{% endblock %}
+
+{% block content %}
+    <h1>Resident directory</h1>
+    <form method="get">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by name">
+        <button type="submit">Search</button>
+    </form>
+    {% if q %}
+        <table>
+            <tr><th>Name</th><th>Apartment</th><th>Phone</th></tr>
+            {% for name, apartment, phone in residents %}
+                <tr><td>{{ name }}</td><td>{{ apartment }}</td><td>{{ phone }}</td></tr>
+            {% empty %}
+                <tr><td colspan="3">No residents found.</td></tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+{% endblock %}
