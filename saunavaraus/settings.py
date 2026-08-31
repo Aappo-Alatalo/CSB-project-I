@@ -125,3 +125,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
+
+# FLAW 2 (A02 Cryptographic Failures): a custom unsalted MD5 hasher is listed first, so new
+# passwords are stored as a single round of MD5 with no salt. MD5 is fast and broken, and without
+# a salt identical passwords produce identical hashes, so the stored values can be cracked or
+# looked up almost instantly (especially once leaked through the directory SQL injection).
+PASSWORD_HASHERS = [
+    'bookings.hashers.UnsaltedMD5PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
+# FIX (A02): store passwords only with strong, salted, adaptive hashers. Comment out the block
+# above and uncomment this one so Django hashes new passwords with PBKDF2 (its default); existing
+# weak hashes are upgraded to PBKDF2 automatically the next time each user logs in.
+# PASSWORD_HASHERS = [
+#     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+#     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+#     'django.contrib.auth.hashers.Argon2PasswordHasher',
+#     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+#     'django.contrib.auth.hashers.ScryptPasswordHasher',
+# ]
