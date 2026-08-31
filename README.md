@@ -1,1 +1,1 @@
-# Cyber Securiy Base: Project I
+# Cyber Security Base: Project I
