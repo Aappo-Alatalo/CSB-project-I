@@ -92,20 +92,18 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
+# FLAW 5 (A07 Identification and Authentication Failures): password validation is turned off, so
+# the registration form accepts trivially weak passwords such as "1" or "password". Weak passwords
+# make accounts easy to guess and open the door to credential stuffing and brute-force attacks.
+AUTH_PASSWORD_VALIDATORS = []
+# FIX (A07): enforce a baseline password policy so short, numeric and common passwords are
+# rejected. Comment out the empty list above and uncomment Django's default validators below.
+# AUTH_PASSWORD_VALIDATORS = [
+#     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+#     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+#     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+#     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+# ]
 
 
 # Internationalization
